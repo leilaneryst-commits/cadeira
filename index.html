@@ -209,6 +209,17 @@ canvas.draw.on{pointer-events:auto;cursor:crosshair}
 .sres small{display:block;color:var(--muted)}
 .plch{min-height:40px;font-size:14px}
 .recebido #bShare,.recebido #bSendAll,.recebido #bSendAll2,.recebido #bSendAll2g,.recebido #bExp,.recebido #bkBan{display:none!important}
+.obj svg.mj{transform-box:fill-box;transform-origin:50% 85%}
+.bibp{display:block;width:64px;height:67px;position:relative}.bibp svg{width:100%;height:100%;overflow:visible}
+.frameEl{position:absolute;inset:0;pointer-events:none}
+.marking #ed{touch-action:none;cursor:crosshair;-webkit-touch-callout:none}
+#markBar{position:fixed;right:12px;bottom:12px;z-index:45;background:#F2C94C;color:#3b2f00;border-radius:16px;padding:8px 12px;display:flex;gap:10px;align-items:center;font-weight:800;box-shadow:0 4px 18px #0004}
+#markBar .tb{min-height:40px}
+#vBtns .tb{flex:1 1 90px;min-height:50px;font-size:15px}
+.vs.picked{outline:2px solid #C9A400}
+#vsBar{position:fixed;left:12px;bottom:12px;z-index:45;background:var(--panel);border:2px solid var(--rose);border-radius:16px;padding:8px 10px;max-width:min(96vw,520px);box-shadow:0 4px 18px #0004}
+#vsBar b{display:block;font-size:13px;margin-bottom:6px}
+#vsBar .tb{min-height:42px;font-size:14px;flex:1 1 auto}
 </style></head>
 <body>
 <header>
@@ -222,6 +233,8 @@ canvas.draw.on{pointer-events:auto;cursor:crosshair}
   <button class="hb main" id="bSave">Salvar</button>
   <button class="hb" id="bNew">+ Novo</button>
 </header>
+<div id="vsBar" class="hide"><b>Trocar a versão deste versículo:</b><div class="row" id="vsBtns"><button class="tb" data-v="nvi">NVI</button><button class="tb" data-v="blivre">Almeida atualizada</button><button class="tb" data-v="nbv">Nova Bíblia Viva</button></div><p class="note" id="vsMsg" style="margin:6px 0 0"></p></div>
+<div id="markBar" class="hide"><span>🖍 Marcando</span><button class="tb" id="markOff">Parar de marcar</button></div>
 <div id="bkBan" class="hide"><span id="bkTxt"></span><button class="tb on" id="bkNow">Salvar cópia agora</button><button class="tb" id="bkLater">Depois</button></div>
 
 <div class="wrap">
@@ -251,7 +264,7 @@ canvas.draw.on{pointer-events:auto;cursor:crosshair}
         <button class="tb" data-block="p">Normal</button>
       </div></div>
       <div class="grp"><b>Cor da letra</b><div class="row" id="inkSw"></div></div>
-      <div class="grp"><b>Marca-texto</b><div class="row" id="hlSw"></div></div>
+      <div class="grp"><b>Marca-texto</b><div class="row" id="hlSw"></div><div class="row" style="margin-top:6px"><button class="tb" id="bMark">🖍 Marcar passando o dedo</button></div><p class="note">Toque numa cor e passe o dedo nas palavras: elas ficam marcadas. A cor “riscada” tira a marcação. Para parar, toque em “Parar de marcar”.</p></div>
       <div class="grp"><b>Destacar e organizar</b><div class="row">
         <button class="tb" id="bBox">Caixa de destaque</button>
         <button class="tb" data-block="blockquote">Versículo</button>
@@ -294,6 +307,7 @@ canvas.draw.on{pointer-events:auto;cursor:crosshair}
     </div>
 
     <div class="pane" id="p-pagina">
+      <div class="grp"><b>🖼 Moldura da página</b><div class="row" id="frBtns"></div><div class="row" id="frSw" style="margin-top:6px"></div></div>
       <div class="grp"><b>Linhas</b><div class="row">
         <button class="tb" data-lines="linhas">Com linhas</button><button class="tb" data-lines="sem">Sem linhas</button><button class="tb" data-lines="quad">Quadriculado</button><button class="tb" data-lines="pontos">Pontilhado</button>
       </div></div>
@@ -306,13 +320,15 @@ canvas.draw.on{pointer-events:auto;cursor:crosshair}
 
     <div class="pane" id="p-biblia">
       <div class="grp"><b>📅 Plano de leitura: Bíblia em 1 ano</b><div id="plBox"></div></div>
-      <div class="grp"><b>📖 Escolha a versão da Bíblia (a que vai para o seu devocional)</b><div class="row"><select class="tb" id="bVers" aria-label="Versão da Bíblia" style="flex:1 1 220px"><option value="blivre">Almeida atualizada (Bíblia Livre)</option><option value="nbv">Linguagem de hoje (Nova Bíblia Viva)</option><option value="tb">Tradução Brasileira</option></select></div><div class="row" style="margin-top:6px"><a class="tb" id="bNVI" href="https://www.bible.com/pt/bible/129/PSA.23.NVI" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Ler este capítulo na NVI ↗</a></div><p class="note" style="margin:4px 0 0">A NVI abre no site Bible.com (precisa de internet). Ela tem direitos autorais, por isso não pode vir dentro do caderno; copie o trecho que quiser e cole na página.</p>
+      <div class="grp"><b>📖 Escolha a versão da Bíblia (a que vai para o seu devocional)</b><div class="row" id="vBtns" style="margin-bottom:8px"><button class="tb" data-v="nvi">NVI</button><button class="tb" data-v="blivre">Almeida atualizada</button><button class="tb" data-v="nbv">Nova Bíblia Viva</button></div><div class="row"><select class="tb hide" id="bVers" aria-label="Versão da Bíblia" style="flex:1 1 220px"><option value="blivre">Almeida atualizada (Bíblia Livre)</option><option value="nbv">Linguagem de hoje (Nova Bíblia Viva)</option><option value="tb">Tradução Brasileira</option></select></div><div class="row hide" style="margin-top:6px"><a class="tb" id="bNVI" href="https://www.bible.com/pt/bible/129/PSA.23.NVI" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Ler este capítulo na NVI ↗</a></div><p class="note hide" style="margin:4px 0 0">A NVI abre no site Bible.com (precisa de internet). Ela tem direitos autorais, por isso não pode vir dentro do caderno; copie o trecho que quiser e cole na página.</p>
       <p class="note" id="bVersMsg" style="margin:4px 0 0">A Almeida atualizada funciona sem internet. As outras precisam de internet só na primeira vez.</p></div>
       <div class="grp"><b>Escolha o texto</b>
         <div class="row"><select class="tb" id="bBook" aria-label="Livro" style="flex:1 1 160px"></select><select class="tb" id="bCap" aria-label="Capítulo"></select><input class="field" id="bVer" placeholder="Versículos (ex.: 1-6)" aria-label="Versículos" style="flex:1 1 140px"></div>
         <div class="row" style="margin-top:8px"><button class="tb on" id="bGo">Abrir</button><button class="tb" id="bIns" disabled>Colocar no caderno</button><button class="tb" id="bRef" disabled>Usar como título</button></div>
         <div class="row" style="margin-top:8px"><input class="field" id="bFind" placeholder="Procurar palavra na Bíblia (ex.: pastor)" style="flex:1 1 180px"><button class="tb" id="bFindGo">Procurar</button></div>
       </div>
+      <div class="row" id="bPickRow" style="margin-top:8px"><button class="tb on" id="bConf" disabled>✓ Colocar no devocional (0)</button><button class="tb" id="bPickAll">Marcar todos</button><button class="tb" id="bPickNone">Limpar</button></div>
+      <div id="nviBox" class="hide grp" style="margin-top:8px"><p class="note" style="margin:0 0 8px">A NVI tem direitos autorais, por isso o texto não vem dentro do caderno. Escolha o livro e o capítulo acima, abra na NVI, copie os versículos, volte e cole aqui.</p><div class="row"><a class="tb" id="bNVI2" href="#" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Abrir na NVI ↗</a></div><textarea class="field" id="nviTxt" rows="4" placeholder="Cole aqui os versículos copiados da NVI" style="margin-top:8px"></textarea><p class="note" style="margin:6px 0">Vai ficar como: <b id="nviRef"></b></p><div class="row"><button class="tb on" id="nviPut">✓ Colocar no devocional (NVI)</button></div><p class="note" id="nviMsg"></p></div>
       <div class="out" id="bOut"><p class="note" style="margin:0">Escolha livro e capítulo. Para só alguns versículos, escreva por exemplo 1-6.</p></div>
       <p class="note">Almeida atualizada: Bíblia Livre (BLIVRE), © Diego Santos, Mario Sérgio e Marco Teles, licença CC BY 4.0 Brasil. Linguagem de hoje: Biblica® Open Nova Bíblia Viva 2007, © 2007, 2010 Biblica, Inc., licença CC BY-SA 4.0. Tradução Brasileira (1917): domínio público. Confira sempre com a sua Bíblia.</p>
     </div>
@@ -334,7 +350,7 @@ canvas.draw.on{pointer-events:auto;cursor:crosshair}
   </section>
 
   <section class="stage" aria-label="Folha do caderno">
-    <div class="pagebar"><span class="count" id="count">Página 1 de 1</span><button class="tb danger" id="bTrash" aria-label="Excluir esta página" title="Excluir esta página">🗑 Excluir página</button><button class="tb" id="bBin" aria-label="Abrir a lixeira">🗂 Lixeira <span class="binn" id="binN">0</span></button><button class="tb" id="bMood">😊 Meu dia</button><button class="tb" id="bShare">📤 Enviar página</button><button class="tb" id="bFav" aria-label="Página favorita">⭐ Favorita</button><button class="tb" id="bSearch">🔎 Buscar</button><button class="tb" id="bPray">🙏 Orações</button><div id="arrBar" class="hide"><span style="flex:1 1 220px">Modo mover: arraste a imagem ou forma para qualquer lugar, puxe a bolinha azul para mudar o tamanho, toque no × para apagar.</span><button class="tb on" id="bArrDone">Pronto</button></div><span class="note" style="margin:0;flex:1 1 200px">Toque no cantinho com a mãozinha para virar a página</span><button class="tb" id="bQMove">✋ Mover</button><button class="tb" id="bQDraw">✏️ Desenhar</button><button class="tb on" id="bUndo" disabled>↶ Desfazer</button><button class="tb" id="bZoom">Ampliar para escrever</button></div>
+    <div class="pagebar"><span class="count" id="count">Página 1 de 1</span><button class="tb danger" id="bTrash" aria-label="Excluir esta página" title="Excluir esta página">🗑 Excluir página</button><button class="tb" id="bBin" aria-label="Abrir a lixeira">🗂 Lixeira <span class="binn" id="binN">0</span></button><button class="tb" id="bMood">📖 Meu dia</button><button class="tb" id="bShare">📤 Enviar página</button><button class="tb" id="bFav" aria-label="Página favorita">⭐ Favorita</button><button class="tb" id="bSearch">🔎 Buscar</button><button class="tb" id="bPray">🙏 Orações</button><div id="arrBar" class="hide"><span style="flex:1 1 220px">Modo mover: arraste a imagem ou forma para qualquer lugar, puxe a bolinha azul para mudar o tamanho, toque no × para apagar.</span><button class="tb on" id="bArrDone">Pronto</button></div><span class="note" style="margin:0;flex:1 1 200px">Toque no cantinho com a mãozinha para virar a página</span><button class="tb" id="bQMove">✋ Mover</button><button class="tb" id="bQDraw">✏️ Desenhar</button><button class="tb on" id="bUndo" disabled>↶ Desfazer</button><button class="tb" id="bZoom">Ampliar para escrever</button></div>
     <div class="book">
       <div class="sheetbox" id="box"><div class="sizer" id="sizer">
         <div class="sheet" id="sheet">
@@ -343,6 +359,7 @@ canvas.draw.on{pointer-events:auto;cursor:crosshair}
           <div class="veil" id="veilEl"></div>
           <div class="theme" id="theme"></div>
           <div class="lines linhas" id="lines"></div>
+          <div class="frameEl" id="frameEl"></div>
           <canvas class="hlc" id="cvh" width="800" height="1131"></canvas>
           <div class="head"><span class="moodEl" id="moodEl"></span><input id="title" placeholder="Tema do dia" aria-label="Título"><input id="date" class="d" aria-label="Data"></div>
           <div class="times" id="times"></div>
@@ -375,9 +392,9 @@ canvas.draw.on{pointer-events:auto;cursor:crosshair}
   <div id="binList"></div>
   <div class="row" style="margin-top:10px"><button class="tb danger" id="binEmpty">Esvaziar lixeira</button><button class="tb" id="binClose">Fechar</button></div></div></div>
 <div class="dlg" id="dlgMood"><div class="in big"><h2 style="font:700 24px Lora,serif;margin:0 0 4px">Como está o meu dia?</h2>
-  <p class="note" style="margin:0 0 10px">Escolha o emoji. Ele fica se mexendo no alto da página.</p>
+  <p class="note" style="margin:0 0 10px">Escolha uma Bíblia carinha. Ela aparece se mexendo na página: arraste para mudar de lugar e puxe a bolinha azul para mudar o tamanho. Toque no × para tirar.</p>
   <div class="mgrid" id="moodGrid"></div>
-  <div class="row"><button class="tb" id="moodNone">Tirar o emoji</button><button class="tb" id="moodClose">Fechar</button></div></div></div>
+  <div class="row"><button class="tb hide" id="moodNone">Tirar o emoji</button><button class="tb" id="moodClose">Fechar</button></div></div></div>
 <div class="dlg" id="dlgShare"><div class="in big"><h2 style="font:700 24px Lora,serif;margin:0 0 10px">📤 Enviar página</h2>
   <div class="grp"><b>Qual página?</b><select class="tb" id="shSel" style="width:100%" aria-label="Página para enviar"></select></div>
   <div class="grp"><b>E-mail de quem vai receber (opcional)</b><input class="field" id="shTo" type="email" inputmode="email" placeholder="nome@exemplo.com"></div>
@@ -420,6 +437,7 @@ canvas.draw.on{pointer-events:auto;cursor:crosshair}
 <li>Vire as páginas tocando na <b>mãozinha</b> no canto da folha.</li>
 <li>Toque em <b>Salvar</b> sempre que quiser guardar a página. Se esquecer, o caderno pergunta antes de virar a página.</li>
 <li>🗑 <b>Excluir página</b> manda para a <b>Lixeira</b>, onde dá para restaurar. 😊 <b>Meu dia</b> coloca um emoji animado. 📤 <b>Enviar página</b> manda por WhatsApp ou e-mail. 🔒 cria uma <b>senha</b> para só você abrir.</li>
+<li>📖 <b>Meu dia</b> agora tem Bíblias carinhas que se mexem e você move e aumenta. Em <b>Página</b> há molduras de cruz, Bíblia e mãos orando. No <b>Marca-texto</b>, escolha a cor e passe o dedo nas palavras.</li>
 <li>⭐ marca páginas favoritas, 🔎 busca em tudo que você escreveu, 🙏 guarda pedidos de oração e a aba Bíblia tem o plano de leitura em 1 ano.</li>
 <li>Em <b>Imprimir</b> você imprime em A4 e faz a <b>cópia de segurança</b> das suas anotações.</li>
 </ol>
@@ -468,7 +486,7 @@ const nid=()=>'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const hhmm=()=>new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 const timesHTML=p=>p.start?`<span>🕐 Início: <b>${p.start}</b></span><span>Término: <b>${p.end||'—'}</b></span>`:'';
 var MOODS=[['😀','Feliz','a-bounce'],['🥰','Amado','a-beat'],['😌','Em paz','a-float'],['🙏','Grato','a-pulse'],['🥳','Animado','a-spin'],['😴','Cansado','a-sway'],['😟','Preocupado','a-shake'],['😢','Triste','a-drop'],['😠','Irritado','a-shake2'],['💪','Fortalecido','a-pump'],['🤗','Acolhido','a-hug'],['😇','Perdoado','a-glow']];const moodHTML=p=>{const m=MOODS[p.mood];return m?`<span class="mj ${m[2]}" title="Meu dia: ${m[1]}">${m[0]}</span>`:''};
-const showTimes=()=>{$('#times').innerHTML=timesHTML(P());const me=$('#moodEl');if(me)me.innerHTML=moodHTML(P());const fb=$('#bFav');if(fb)fb.classList.toggle('on',!!P().fav)};
+const showTimes=()=>{$('#times').innerHTML=timesHTML(P());const me=$('#moodEl');if(me)me.innerHTML=moodHTML(P());const fb=$('#bFav');if(fb)fb.classList.toggle('on',!!P().fav);const fe=$('#frameEl');if(fe)fe.innerHTML=frameHTML(P());frUI()};
 const newPage=()=>({start:hhmm(),end:'',id:nid(),title:'',date:today(),html:TPL,lines:'linhas',color:'#FFFFFF',theme:'nenhum',photo:'',veil:55,draw:'',hl:'',objs:[],t:Date.now()});
 
 let pages=[newPage()],cur=0;
@@ -560,7 +578,7 @@ function shapeSVG(k,w,h,c){const s=4,o=`fill="none" stroke="${c}" stroke-width="
   else if(k==='flores'){const rx=w/2-14,ry=h/2-14;b=`<ellipse cx="${w/2}" cy="${h/2}" rx="${Math.max(1,rx)}" ry="${Math.max(1,ry)}" fill="none" stroke="${c}" stroke-width="2.5"/>`;const n=Math.max(6,Math.round(Math.PI*(rx+ry)/46));
     for(let i=0;i<n;i++){const a=i/n*2*Math.PI,x=w/2+rx*Math.cos(a),y=h/2+ry*Math.sin(a);b+=`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})">`+[0,72,144,216,288].map(t=>`<ellipse cx="0" cy="-6" rx="4.2" ry="6.5" fill="#F7A8C4" transform="rotate(${t})"/>`).join('')+`<circle r="3.6" fill="#FFD43B"/></g>`}}
   return `<svg viewBox="0 0 ${w} ${h}" aria-hidden="true">${b}</svg>`}
-function renderObjs(layer,objs,inter){layer.innerHTML=(objs||[]).map(o=>`<div class="obj${o.t==='img'?' img':''}${inter&&o.id===selId?' sel':''}" data-id="${o.id}" style="left:${o.x}px;top:${o.y}px;width:${o.w}px;height:${o.h}px">${o.t==='img'?`<img src="${o.src}" alt="">`:shapeSVG(o.k,o.w,o.h,o.c)}${inter?'<span class="hres" data-h="res"></span><button class="hdel" data-h="del" aria-label="Apagar">×</button>':''}</div>`).join('')}
+function renderObjs(layer,objs,inter){layer.innerHTML=(objs||[]).map(o=>`<div class="obj${o.t==='img'||o.t==='bib'?' img':''}${inter&&o.id===selId?' sel':''}" data-id="${o.id}" style="left:${o.x}px;top:${o.y}px;width:${o.w}px;height:${o.h}px">${o.t==='img'?`<img src="${o.src}" alt="">`:o.t==='bib'?bibSVG(o.f):shapeSVG(o.k,o.w,o.h,o.c)}${inter?'<span class="hres" data-h="res"></span><button class="hdel" data-h="del" aria-label="Apagar">×</button>':''}</div>`).join('')}
 const drawObjs=()=>renderObjs($('#objs'),P().objs,arrange);
 function setArrange(v){arrange=v;$('#bQMove').classList.toggle('on',v);$('#objs').classList.toggle('on',v);if(v&&drawOn)setDraw(false);if(!v)selId=null;drawObjs();$('#arrBar').classList.toggle('hide',!v);$('#bArr').classList.toggle('on',v)}
 const spot=()=>{const r=sheet.getBoundingClientRect(),k=1131/r.height;return Math.min(900,Math.max(160,(Math.max(0,-r.top)+120)*k))};
@@ -576,7 +594,7 @@ objsEl.addEventListener('pointerdown',e=>{if(!arrange){if(drawOn||!e.target.clos
   selId=id;drag={o,mode:e.target.dataset.h==='res'?'res':'move',sx:e.clientX,sy:e.clientY,ox:o.x,oy:o.y,ow:o.w,oh:o.h,pre:stateNow(),moved:false};objsEl.setPointerCapture(e.pointerId);drawObjs()});
 objsEl.addEventListener('pointermove',e=>{if(!drag)return;const r=sheet.getBoundingClientRect(),k=800/r.width,dx=(e.clientX-drag.sx)*k,dy=(e.clientY-drag.sy)*k,o=drag.o;drag.moved=true;
   if(drag.mode==='move'){o.x=Math.round(Math.min(780,Math.max(-o.w+20,drag.ox+dx)));o.y=Math.round(Math.min(1110,Math.max(-o.h+20,drag.oy+dy)))}
-  else{o.w=Math.round(Math.max(30,drag.ow+dx));o.h=o.t==='img'?Math.round(o.w*drag.oh/drag.ow):o.k==='linha'?o.h:Math.round(Math.max(30,drag.oh+dy))}
+  else{o.w=Math.round(Math.max(30,drag.ow+dx));o.h=(o.t==='img'||o.t==='bib')?Math.round(o.w*drag.oh/drag.ow):o.k==='linha'?o.h:Math.round(Math.max(30,drag.oh+dy))}
   const el=objsEl.querySelector(`[data-id="${o.id}"]`);if(el){el.style.left=o.x+'px';el.style.top=o.y+'px';el.style.width=o.w+'px';el.style.height=o.h+'px';if(drag.mode==='res'&&o.t==='shape'){const sv=el.querySelector('svg');if(sv)sv.outerHTML=shapeSVG(o.k,o.w,o.h,o.c)}}});
 const dragEnd=()=>{if(!drag)return;if(drag.moved){hist.push(drag.pre);if(hist.length>40)hist.shift();updUndo();changed()}drag=null};
 objsEl.addEventListener('pointerup',dragEnd);objsEl.addEventListener('pointercancel',dragEnd);
@@ -656,11 +674,11 @@ const caps=()=>{const b=B[+$('#bBook').value];$('#bCap').innerHTML=b[1].map((_,i
 $('#bBook').onchange=()=>{caps();nviLink()};caps();$('#bCap').addEventListener('change',nviLink);$('#bCap').value='23';
 const vlist=(bi,ci)=>B[bi][1][ci].map((v,i)=>Array.isArray(v)?{n:v[0],t:v[1]}:{n:i+1,t:v});
 let lastB=null,lastD=null;
-const showB=(ref,vs,base)=>{lastB={referencia:ref,versiculos:vs,base:base||ref};$('#bOut').innerHTML=`<h4>${esc(ref)}</h4><p class="note" style="margin:0 0 8px">Toque num versículo para colocar no caderno. Para vários, marque com o dedo e toque em “Colocar no caderno”.</p>`+vs.map((v,i)=>`<p class="vs" data-i="${i}" style="margin:0 0 4px;padding:4px 6px;border-radius:8px;cursor:pointer"><sup>${v.n}</sup>${esc(v.t)}</p>`).join('');$('#bIns').disabled=false;$('#bRef').disabled=false};
+const showB=(ref,vs,base)=>{lastB={referencia:ref,versiculos:vs,base:base||ref};$('#bOut').innerHTML=`<h4>${esc(ref)}</h4><p class="note" style="margin:0 0 8px">Toque nos versículos que quer: eles ficam marcados em amarelo. Depois toque em “Colocar no devocional”.</p>`+vs.map((v,i)=>`<p class="vs" data-i="${i}" style="margin:0 0 4px;padding:4px 6px;border-radius:8px;cursor:pointer"><sup>${v.n}</sup>${esc(v.t)}</p>`).join('');$('#bIns').disabled=false;$('#bRef').disabled=false};
 const vref=(base,arr)=>{const ns=arr.map(v=>v.n);const a=Math.min(...ns),z=Math.max(...ns);return `${base}:${ns.length===z-a+1?(a===z?a:a+'-'+z):ns.join(',')}${vsig()}`};
 const ensureRange=()=>{if(range&&ed.contains(range.startContainer))return;const h=[...ed.querySelectorAll('h3')].find(x=>/texto lido/i.test(x.textContent));range=document.createRange();if(h)range.setStartAfter(h);else{range.selectNodeContents(ed);range.collapse(false)}};
 const insVerses=(arr,ref)=>{if(!arr.length)return;ensureRange();ex('insertHTML',`<blockquote>${arr.map(v=>`<sup>${v.n}</sup> ${esc(v.t)}`).join(' ')}<br><b>— ${esc(ref)}</b></blockquote><p><br></p>`);setTimeout(()=>status('Versículo colocado no caderno ✓'),50)};
-$('#bOut').addEventListener('click',e=>{const el=e.target.closest('.vs');if(!el||!lastB)return;const s=getSelection();if(!s.isCollapsed&&$('#bOut').contains(s.anchorNode))return;const v=lastB.versiculos[+el.dataset.i];el.style.background='#FFF1B8';insVerses([v],vref(lastB.base,[v]))});
+$('#bOut').addEventListener('click',e=>{const el=e.target.closest('.vs');if(!el||!lastB)return;const s=getSelection();if(!s.isCollapsed&&$('#bOut').contains(s.anchorNode))return;const on=!el.classList.contains('picked');el.classList.toggle('picked',on);el.style.background=on?'#FFF1B8':''});
 $('#bGo').onclick=()=>{const bi=+$('#bBook').value,ci=+$('#bCap').value-1;let vs=vlist(bi,ci);const r=$('#bVer').value.trim();let ref=`${B[bi][0]} ${ci+1}`;
   if(r){const m=r.match(/^(\d+)\s*(?:[-–a]\s*(\d+))?$/);if(m){const a=+m[1],z=+(m[2]||m[1]);vs=vs.filter(v=>v.n>=a&&v.n<=z);ref+=`:${a}${z!==a?'-'+z:''}`}}
   if(!vs.length){$('#bOut').innerHTML='<p class="note" style="margin:0">Esses versículos não existem neste capítulo.</p>';return}showB(ref+vsig(),vs,`${B[bi][0]} ${ci+1}`)};
@@ -690,7 +708,7 @@ $('#dAll').querySelectorAll('button').forEach(b=>{b.addEventListener('mousedown'
 const sheetFor=p=>{const s=sheet.cloneNode(true);s.removeAttribute('id');s.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));s.classList.remove('flip-n','flip-p');s.style.position='absolute';s.style.transform='none';
   s.querySelector('.bgc').style.background=p.color;const ph=s.querySelector('.photo');ph.style.backgroundImage=p.photo?`url(${p.photo})`:'none';s.querySelector('.veil').style.background=p.photo?`color-mix(in srgb, ${p.color} ${p.veil}%, transparent)`:'none';
   s.querySelector('.theme').style.backgroundImage=THEMES[p.theme]?`url("${THEMES[p.theme]}")`:'none';s.querySelector('.lines').className='lines '+p.lines;
-  const mo=s.querySelector('.moodEl');if(mo)mo.innerHTML=moodHTML(p);const ins=s.querySelectorAll('.head input');[p.title,p.date].forEach((v,k)=>{const d=document.createElement('div');d.textContent=v||'';d.style.cssText=k?'flex:0 0 170px;font:600 18px Nunito;text-align:right;padding:4px 0;border-bottom:2px solid #0002':'flex:1;font:700 32px/1.15 Lora,serif;padding:4px 0;border-bottom:2px solid #0002;min-height:41px';ins[k].replaceWith(d)});
+  const fr=s.querySelector('.frameEl');if(fr)fr.innerHTML=frameHTML(p);const mo=s.querySelector('.moodEl');if(mo)mo.innerHTML=moodHTML(p);const ins=s.querySelectorAll('.head input');[p.title,p.date].forEach((v,k)=>{const d=document.createElement('div');d.textContent=v||'';d.style.cssText=k?'flex:0 0 170px;font:600 18px Nunito;text-align:right;padding:4px 0;border-bottom:2px solid #0002':'flex:1;font:700 32px/1.15 Lora,serif;padding:4px 0;border-bottom:2px solid #0002;min-height:41px';ins[k].replaceWith(d)});
   const e=s.querySelector('.ed');const tm=s.querySelector('.times');if(tm)tm.innerHTML=timesHTML(p);e.removeAttribute('contenteditable');e.innerHTML=p.html;e.style.fontFamily=p.font?`'${p.font}',Nunito,sans-serif`:'';e.style.overflow='hidden';
   [['canvas.hlc',p.hl],['canvas.draw',p.draw]].forEach(([q,u])=>{const c=s.querySelector(q);if(!c)return;if(u){const im=document.createElement('img');im.src=u;im.style.cssText='position:absolute;inset:0;width:100%;height:100%';c.replaceWith(im)}else c.remove()});
   const ol=s.querySelector('.objs');if(ol){ol.classList.remove('on');ol.style.background='none';renderObjs(ol,p.objs,false)}
@@ -880,6 +898,127 @@ $('#saFile').onclick=()=>saDown(allFile());
 $('#saShare').onclick=async()=>{const f=allFile();
   if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Devocional Lâmpada',text:'Meu devocional para você. Abra o Lâmpada'+(APPURL?' ('+APPURL+')':'')+', vá em Imprimir › Restaurar cópia e escolha este arquivo.'});return}catch(e){if(e&&e.name==='AbortError')return}}
   saDown(f)};
+
+
+/* ---------- Bíblias com carinhas (figurinhas que se mexem) ---------- */
+function bibSVG(i){const A=['a-bounce','a-beat','a-float','a-pulse','a-spin','a-sway','a-shake','a-drop','a-shake2','a-pump','a-hug','a-glow'];
+  const D=[['arc','grin',['blush']],['heart','smile',['blush','hearts']],['closed','smile',[]],['closed','grin',['blush','sparkle']],['wide','open',['stars']],['half','yawn',['zzz']],['open','wavy',['browW']],['open','frown',['tear','browW']],['open','frown',['browA','red']],['open','grin',['browA','sparkle']],['closed','smile',['blush','hearts']],['closed','smile',['halo']]][i]||['open','smile',[]];
+  const [e,m,x]=D,C='#FFF3D6',Y=54,st=(d,w)=>`<path d="${d}" fill="none" stroke="${C}" stroke-width="${w||3.5}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const eye=cx=>e==='arc'?st(`M${cx-6} ${Y+3} Q${cx} ${Y-7} ${cx+6} ${Y+3}`):e==='closed'?st(`M${cx-6} ${Y} Q${cx} ${Y+7} ${cx+6} ${Y}`)
+    :e==='heart'?`<path transform="translate(${cx} ${Y})" d="M0 7 C-10 -1 -6 -9 0 -3 C6 -9 10 -1 0 7Z" fill="#FF5C7A"/>`
+    :e==='wide'?`<ellipse cx="${cx}" cy="${Y}" rx="7" ry="8" fill="#fff"/><circle cx="${cx}" cy="${Y+1}" r="4" fill="#222"/><circle cx="${cx+1.5}" cy="${Y-1}" r="1.3" fill="#fff"/>`
+    :e==='half'?`<path d="M${cx-6} ${Y} A6 6 0 0 0 ${cx+6} ${Y}Z" fill="#fff"/><circle cx="${cx}" cy="${Y+2}" r="2.4" fill="#222"/>`+st(`M${cx-7} ${Y} H${cx+7}`,3)
+    :`<ellipse cx="${cx}" cy="${Y}" rx="6" ry="7" fill="#fff"/><circle cx="${cx}" cy="${Y+1}" r="3.2" fill="#222"/>`;
+  const mouth={smile:st('M50 69 Q60 78 70 69'),grin:'<path d="M49 67 Q60 85 71 67Z" fill="#7B1E2B"/><ellipse cx="60" cy="76" rx="5" ry="3" fill="#E8707E"/>',open:'<path d="M47 66 Q60 90 73 66Z" fill="#7B1E2B"/><ellipse cx="60" cy="78" rx="6" ry="3.5" fill="#E8707E"/>',frown:st('M50 76 Q60 67 70 76'),wavy:st('M49 72 q4 -4 8 0 t8 0 t8 0'),yawn:'<ellipse cx="60" cy="73" rx="6" ry="8" fill="#5A1A1A"/>'}[m];
+  const star=(cx,cy,s)=>`<path transform="translate(${cx} ${cy}) scale(${s})" d="M0 -6 L1.8 -1.8 L6 0 L1.8 1.8 L0 6 L-1.8 1.8 L-6 0 L-1.8 -1.8Z" fill="#FFD43B"/>`;
+  const heart=(cx,cy,s)=>`<path transform="translate(${cx} ${cy}) scale(${s})" d="M0 5 C-8 -1 -5 -7 0 -2.5 C5 -7 8 -1 0 5Z" fill="#FF5C7A"/>`;
+  let s=`<rect x="16" y="12" width="76" height="80" rx="9" fill="${x.includes('red')?'#9C3B2E':'#6B4226'}"/><rect x="16" y="12" width="12" height="80" rx="6" fill="#00000033"/><rect x="21" y="90" width="68" height="7" rx="2" fill="#F7F1E1" stroke="#CDBF9B"/><path d="M76 94 v9 l4 -4 l4 4 v-9z" fill="#B8475E"/><path d="M58 16h5v18h-5z M52 21h17v5H52z" fill="#E6B84A"/>`;
+  s+=eye(48)+eye(72)+mouth;
+  if(x.includes('blush'))s+='<circle cx="42" cy="66" r="4.5" fill="#FF9AA2" opacity=".7"/><circle cx="78" cy="66" r="4.5" fill="#FF9AA2" opacity=".7"/>';
+  if(x.includes('tear'))s+='<path d="M44 62 q-3.5 6 0 8 q3.5 -2 0 -8z" fill="#8EC9F5"/>';
+  if(x.includes('stars'))s+=star(86,24,1.1)+star(22,28,.8);
+  if(x.includes('sparkle'))s+=star(86,28,.9);
+  if(x.includes('hearts'))s+=heart(86,26,1)+heart(24,32,.7);
+  if(x.includes('zzz'))s+='<text x="80" y="30" font-size="14" font-weight="800" fill="#fff" font-family="Nunito,sans-serif">z</text><text x="87" y="19" font-size="10" font-weight="800" fill="#fff" font-family="Nunito,sans-serif">z</text>';
+  if(x.includes('halo'))s+='<ellipse cx="60" cy="7" rx="17" ry="4.5" fill="none" stroke="#F2C94C" stroke-width="3"/>';
+  if(x.includes('browW'))s+=st('M42 46 L54 41',3)+st('M66 41 L78 46',3);
+  if(x.includes('browA'))s+=st('M42 41 L54 47',3.5)+st('M66 47 L78 41',3.5);
+  return `<svg class="mj ${A[i]||''}" viewBox="0 0 100 104" aria-hidden="true">${s}</svg>`}
+$('#bMood').onclick=()=>{$('#moodGrid').innerHTML=MOODS.map((m,i)=>`<button class="mood-b" data-m="${i}" aria-label="Bíblia ${m[1]}"><span class="bibp">${bibSVG(i)}</span><small>${m[1]}</small></button>`).join('');$('#dlgMood').classList.add('on')};
+$('#moodGrid').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;moodClose();addObj({t:'bib',f:+b.dataset.m,x:560,y:spot(),w:120,h:125})};
+
+/* ---------- molduras ---------- */
+function frameHTML(p){const k=p&&p.frame;if(!k)return '';const c=p.frameC||'#8B6B3E';
+  const ic={cruz:`<path d="M10 2h4v6h6v4h-6v10h-4V12H4V8h6z" fill="${c}"/>`,
+    biblia:`<rect x="4" y="2" width="16" height="20" rx="2" fill="${c}"/><rect x="4" y="2" width="4" height="20" rx="2" fill="#0003"/><path d="M13 6h2v4h3v2h-3v5h-2v-5h-3v-2h3z" fill="#fff"/>`,
+    maos:`<path d="M12 1.5C9.5 4 7 8 7.2 13l1 4L7 22h10l-1.2-5 1-4C17 8 14.5 4 12 1.5z" fill="${c}"/><rect x="7" y="19.5" width="10" height="3" rx="1" fill="#0005"/><path d="M12 4.5v15M9.2 9.5l2.8 2.6M14.8 9.5l-2.8 2.6M9 13.5l3 2.4M15 13.5l-3 2.4" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/>`}[k];
+  if(!ic)return '';let g='';const put=(x,y)=>{g+=`<g transform="translate(${x} ${y}) scale(1.05)">${ic}</g>`};
+  for(let x=10;x<=772;x+=36){put(x,7);put(x,1131-31)}
+  for(let y=44;y<=1060;y+=36){put(7,y);put(800-31,y)}
+  return `<svg viewBox="0 0 800 1131" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true"><rect x="3" y="3" width="794" height="1125" rx="10" fill="none" stroke="${c}" stroke-width="2"/><rect x="36" y="36" width="728" height="1059" rx="6" fill="none" stroke="${c}" stroke-width="1.5" opacity=".6"/>${g}</svg>`}
+function frUI(){const f=(P().frame)||'';document.querySelectorAll('#frBtns button').forEach(b=>b.classList.toggle('on',b.dataset.fr===f))}
+$('#frBtns').innerHTML=[['','Sem moldura'],['cruz','✝ Cruzes'],['biblia','📖 Bíblias'],['maos','🙏 Mãos orando']].map(([k,n])=>`<button class="tb" data-fr="${k}">${n}</button>`).join('');
+$('#frBtns').onclick=e=>{const b=e.target.closest('[data-fr]');if(!b)return;pushUndo();P().frame=b.dataset.fr;changed();showTimes()};
+swatches($('#frSw'),['#8B6B3E','#B8475E','#2F5FA8','#3E4A2F','#7A4FB0','#E8A317'],c=>{P().frameC=c;changed();showTimes()},'Cor da moldura');
+showTimes();
+
+/* ---------- marcador: passa o dedo e já marca ---------- */
+let markOn=false,mk=null,hlColor='#FFF176';
+const setMark=v=>{markOn=v;document.body.classList.toggle('marking',v);$('#markBar').classList.toggle('hide',!v);$('#bMark').classList.toggle('on',v);
+  if(v){ed.setAttribute('inputmode','none');if(typeof drawOn!=='undefined'&&drawOn)setDraw(false);if(arrange)setArrange(false)}else ed.removeAttribute('inputmode')};
+let skipSel=0,selT=null;
+$('#hlSw').addEventListener('click',e=>{const b=e.target.closest('.sw');if(b){hlColor=b.dataset.c;skipSel=Date.now()+900;setMark(true)}});
+document.addEventListener('selectionchange',()=>{if(!markOn||mk)return;clearTimeout(selT);selT=setTimeout(()=>{if(Date.now()<skipSel)return;const s=getSelection();if(!s.rangeCount||s.isCollapsed||!ed.contains(s.anchorNode)||!ed.contains(s.focusNode))return;const rg0=s.getRangeAt(0).cloneRange();ed.focus({preventScroll:true});s.removeAllRanges();s.addRange(rg0);pushUndo();typing=false;document.execCommand('styleWithCSS',false,true);document.execCommand('hiliteColor',false,hlColor);s.removeAllRanges();changed()},450)});
+$('#bMark').onclick=()=>setMark(!markOn);$('#markOff').onclick=()=>setMark(false);
+const cfp=e=>{const r=document.caretRangeFromPoint?document.caretRangeFromPoint(e.clientX,e.clientY):null;return r&&ed.contains(r.startContainer)?r:null};
+const mkRange=(a,b)=>{const rg=document.createRange();rg.setStart(a.startContainer,a.startOffset);rg.setEnd(a.startContainer,a.startOffset);
+  if(a.startContainer===b.startContainer&&a.startOffset===b.startOffset)return rg;
+  if(rg.comparePoint(b.startContainer,b.startOffset)<0)rg.setStart(b.startContainer,b.startOffset);else rg.setEnd(b.startContainer,b.startOffset);return rg};
+const snapW=rg=>{let n=rg.startContainer,o=rg.startOffset;if(n.nodeType===3){const t=n.textContent;while(o>0&&!/\s/.test(t[o-1]))o--;rg.setStart(n,o)}
+  n=rg.endContainer;o=rg.endOffset;if(n.nodeType===3){const t=n.textContent;while(o<t.length&&!/\s/.test(t[o]))o++;rg.setEnd(n,o)}};
+const hiStyle=document.createElement('style');document.head.appendChild(hiStyle);
+const hiOK=typeof Highlight!=='undefined'&&window.CSS&&CSS.highlights;
+const markShow=(a,b)=>{const rg=mkRange(a,b);snapW(rg);if(hiOK){hiStyle.textContent=`::highlight(mkh){background-color:${hlColor==='transparent'?'#dddddd':hlColor};color:inherit}`;CSS.highlights.set('mkh',new Highlight(rg))}else{const s=getSelection();s.removeAllRanges();s.addRange(rg)}};
+const hiOff=()=>{if(hiOK)CSS.highlights.delete('mkh')};
+ed.addEventListener('pointerdown',e=>{if(!markOn||e.button>0)return;const r=cfp(e);if(!r)return;e.preventDefault();mk=r;try{ed.setPointerCapture(e.pointerId)}catch(_){}markShow(r,r)});
+ed.addEventListener('pointermove',e=>{if(!mk)return;const r=cfp(e);if(r)markShow(mk,r)});
+ed.addEventListener('pointerup',e=>{if(!mk)return;hiOff();const r=cfp(e)||mk;const rg=mkRange(mk,r);mk=null;snapW(rg);
+  if(rg.collapsed){getSelection().removeAllRanges();return}
+  ed.focus({preventScroll:true});const s=getSelection();s.removeAllRanges();s.addRange(rg);pushUndo();typing=false;document.execCommand('styleWithCSS',false,true);document.execCommand('hiliteColor',false,hlColor);s.removeAllRanges();changed()});
+ed.addEventListener('pointercancel',()=>{mk=null;hiOff()});
+
+/* ---------- Bíblia: 3 versões e confirmar versículos ---------- */
+let pickNums=[];
+const updPick=()=>{pickNums=[...$('#bOut').querySelectorAll('.vs.picked')].map(el=>lastB&&lastB.versiculos[+el.dataset.i]).filter(Boolean).map(v=>v.n);const n=$('#bOut').querySelectorAll('.vs.picked').length;$('#bConf').disabled=!n;$('#bConf').textContent=`✓ Colocar no devocional (${n})`};
+$('#bOut').addEventListener('click',()=>setTimeout(updPick,0));
+const mkVerses=()=>[...$('#bOut').querySelectorAll('.vs.picked')].map(el=>lastB.versiculos[+el.dataset.i]);
+$('#bConf').onclick=()=>{if(!lastB)return;const arr=mkVerses();if(!arr.length)return;insVerses(arr,vref(lastB.base,arr));$('#bOut').querySelectorAll('.vs.picked').forEach(el=>{el.classList.remove('picked');el.style.background='#E3F4D7'});updPick()};
+$('#bPickAll').onclick=()=>{$('#bOut').querySelectorAll('.vs').forEach(el=>{el.classList.add('picked');el.style.background='#FFF1B8'});updPick()};
+$('#bPickNone').onclick=()=>{$('#bOut').querySelectorAll('.vs').forEach(el=>{el.classList.remove('picked');el.style.background=''});updPick()};
+$('#bGo').addEventListener('click',()=>setTimeout(updPick,0));
+const NVI_HIDE=['#bGo','#bIns','#bRef','#bFind','#bFindGo','#bOut','#bPickRow'];
+const numsTxt=ns=>{const a=[...new Set(ns)].sort((x,y)=>x-y),o=[];for(let i=0;i<a.length;){let j=i;while(j+1<a.length&&a[j+1]===a[j]+1)j++;o.push(j>i?a[i]+'-'+a[j]:''+a[i]);i=j+1}return o.join(',')};
+let nviNums=[];
+const nviRef=()=>{const bi=+$('#bBook').value,c=+$('#bCap').value||1,v=nviNums.length?numsTxt(nviNums):$('#bVer').value.trim();return `${B[bi][0]} ${c}${v?':'+v:''}`};
+const nviUp=()=>{const bi=+$('#bBook').value,c=+$('#bCap').value||1;const ns=[...new Set(nviNums)].sort((x,y)=>x-y);const rng=ns.length&&ns[ns.length-1]-ns[0]===ns.length-1?(ns.length>1?`.${ns[0]}-${ns[ns.length-1]}`:`.${ns[0]}`):'';$('#bNVI2').href=`https://www.bible.com/pt/bible/129/${USFM[bi]}.${c}${rng}.NVI`;$('#nviRef').textContent=nviRef()+' (NVI)'};
+const setVer=async k=>{const keep=nviNums.length&&!$('#nviBox').classList.contains('hide')?nviNums.slice():pickNums.slice();
+  document.querySelectorAll('#vBtns button').forEach(b=>b.classList.toggle('on',b.dataset.v===k));
+  const nvi=k==='nvi';$('#nviBox').classList.toggle('hide',!nvi);NVI_HIDE.forEach(s=>$(s).classList.toggle('hide',nvi));
+  if(nvi){nviNums=keep;nviUp();$('#nviMsg').textContent=keep.length?'Os versículos que você escolheu já estão na referência. Abra na NVI, copie e cole aqui.':'';return}
+  nviNums=[];$('#bVers').value=k;await $('#bVers').onchange({target:$('#bVers')});
+  if(keep.length&&lastB){$('#bOut').querySelectorAll('.vs').forEach(el=>{const v=lastB.versiculos[+el.dataset.i];if(v&&keep.includes(v.n)){el.classList.add('picked');el.style.background='#FFF1B8'}});updPick()}};
+$('#vBtns').onclick=e=>{const b=e.target.closest('[data-v]');if(b)setVer(b.dataset.v)};
+['#bBook','#bCap'].forEach(s=>$(s).addEventListener('change',nviUp));$('#bVer').addEventListener('input',nviUp);
+$('#nviPut').onclick=()=>{const t=$('#nviTxt').value.replace(/\s+/g,' ').trim();if(!t){$('#nviMsg').textContent='Cole primeiro o texto copiado da NVI.';return}
+  ensureRange();ex('insertHTML',`<blockquote>${esc(t)}<br><b>— ${esc(nviRef())} (NVI)</b></blockquote><p><br></p>`);$('#nviTxt').value='';$('#nviMsg').textContent='Versículos colocados no devocional ✓'};
+setVer('blivre');
+
+
+/* ---------- trocar a versão de um versículo que já está no devocional ---------- */
+const VKEY={'Almeida atualizada':'blivre','NBV':'nbv','TB':'tb','NVI':'nvi'},VNAME={blivre:'Almeida atualizada',nbv:'Nova Bíblia Viva',tb:'Tradução Brasileira',nvi:'NVI'};
+let vsTarget=null;
+const parseRef=bq=>{const bs=bq.querySelectorAll('b');const b=bs[bs.length-1];if(!b)return null;const m=b.textContent.trim().match(/^[—–-]\s*(.+?)\s+(\d+):([\d,\-–]+)\s*(?:\(([^)]+)\))?\s*$/);if(!m)return null;
+  const nums=[];m[3].split(',').forEach(p=>{const r=p.split(/[-–]/).map(Number);if(r.length===2&&r[1]>=r[0])for(let i=r[0];i<=r[1];i++)nums.push(i);else if(!isNaN(r[0]))nums.push(r[0])});
+  return {b,book:m[1],cap:+m[2],txt:m[3],key:m[4]?VKEY[m[4]]||'?':'blivre',nums}};
+const vsFind=()=>{const s=getSelection();if(!s.rangeCount||!ed.contains(s.anchorNode))return null;const n=s.anchorNode.nodeType===1?s.anchorNode:s.anchorNode.parentElement;const bq=n&&n.closest&&n.closest('blockquote');return bq&&ed.contains(bq)&&parseRef(bq)?bq:null};
+const vsShow=()=>{if(markOn){$('#vsBar').classList.add('hide');return}const bq=vsFind();vsTarget=bq;$('#vsBar').classList.toggle('hide',!bq);
+  if(bq){const k=parseRef(bq).key;document.querySelectorAll('#vsBtns button').forEach(b=>b.classList.toggle('on',b.dataset.v===k))}};
+document.addEventListener('selectionchange',()=>setTimeout(vsShow,60));
+$('#vsBtns').addEventListener('mousedown',e=>e.preventDefault());
+$('#vsBtns').onclick=async e=>{const bt=e.target.closest('[data-v]');if(!bt||!vsTarget)return;const bq=vsTarget,r=parseRef(bq),k=bt.dataset.v,msg=$('#vsMsg');
+  if(k==='nvi'){document.querySelector('[data-t="biblia"]').click();nviNums=r.nums.slice();const bi=B.findIndex(b=>norm(b[0])===norm(r.book));if(bi>=0){$('#bBook').value=bi;caps();$('#bCap').value=r.cap}$('#bVer').value=r.txt;nviTarget=bq;await setVer('nvi');$('#nviMsg').textContent='Abra na NVI, copie os versículos e cole aqui. Ao confirmar, o versículo do devocional é trocado pelo da NVI.';return}
+  const v=VERS[k];msg.textContent='Trocando…';
+  try{if(!v.data){const rr=await fetch(v.file);if(!rr.ok)throw 0;v.data=await rr.json()}
+    const D=v.data,bi=D.findIndex(b=>norm(b[0])===norm(r.book));if(bi<0)throw 0;const ch=D[bi][1][r.cap-1];if(!ch)throw 0;
+    const all=ch.map((x,i)=>Array.isArray(x)?{n:x[0],t:x[1]}:{n:i+1,t:x});const arr=all.filter(x=>r.nums.includes(x.n));if(!arr.length)throw 0;
+    pushUndo();const sig=k==='blivre'?'':` (${v.s})`;
+    bq.innerHTML=`${arr.map(x=>`<sup>${x.n}</sup> ${esc(x.t)}`).join(' ')}<br><b>— ${esc(r.book)} ${r.cap}:${esc(r.txt)}${sig}</b>`;changed();msg.textContent='Trocado para '+VNAME[k]+' ✓';vsShow()}
+  catch(err){msg.textContent='Não consegui trocar agora. Essa versão precisa de internet na primeira vez.'}};
+let nviTarget=null;
+const nviOld=$('#nviPut').onclick;
+$('#nviPut').onclick=()=>{if(nviTarget&&ed.contains(nviTarget)){const t=$('#nviTxt').value.replace(/\s+/g,' ').trim();if(!t){$('#nviMsg').textContent='Cole primeiro o texto copiado da NVI.';return}
+  pushUndo();nviTarget.innerHTML=`${esc(t)}<br><b>— ${esc(nviRef())} (NVI)</b>`;changed();nviTarget=null;$('#nviTxt').value='';$('#nviMsg').textContent='Versículo trocado para a NVI ✓';return}
+  nviOld()};
 
 /* ---------- boas-vindas ---------- */
 const W=$('#welcome');const openW=()=>W.classList.add('on');
